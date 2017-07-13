@@ -1,0 +1,66 @@
+---
+title: "House price competition"
+author: "Berthold Jaeck"
+date: "5/18/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r load data}
+trainurl<-"https://kaggle2.blob.core.windows.net/competitions-data/kaggle/5407/train.csv?sv=2015-12-11&sr=b&sig=wlCYO0GlCbALYo8F1AR8inaCe4y7bQhOkIyoTvPltVc%3D&se=2017-05-21T21%3A31%3A33Z&sp=r"
+testurl<-"https://kaggle2.blob.core.windows.net/competitions-data/kaggle/5407/test.csv?sv=2015-12-11&sr=b&sig=D8evlIKK4IeQHz9Z9sZkH66JUd4hGoFam%2FO38m7xRzc%3D&se=2017-05-21T21%3A30%3A29Z&sp=r"
+
+download.file(trainurl, "train.csv", method="curl")
+download.file(testurl, "test.csv", method="curl")
+
+train<-tbl_df(read.csv("train.csv", header=TRUE))
+test<-tbl_df(read.csv("test.csv", header=TRUE))
+```
+
+```{r rem na}
+function (x) {
+    x[is.na(x)] <- 0
+    return(x)
+}
+training$FireplaceQu<-as.factor(na.zero(as.character(training$FireplaceQu)))
+training$Alley<-as.factor(na.zero(as.character(training$Alley)))
+training$Fence<-as.factor(na.zero(as.character(training$Fence)))
+training$PoolQC<-as.factor(na.zero(as.character(training$PoolQC)))
+training$MiscFeature<-as.factor(na.zero(as.character(training$MiscFeature)))
+
+# imputing missing data with multivariate imputation by chained equations(mice)
+library(mice)
+imp <- mice(training, method='rf')
+
+#no data point are missing
+1460*81-sum(apply(training, 2, complete.cases))
+```
+
+```{r splitting}
+splt<-createDataPartition(training$SalePrice, p=0.7, list=FALSE)
+trn<-training[splt,]
+val<-training[-splt,]
+```
+```{r salesplit}
+#splitting saleprice into bins
+(max(training$SalePrice)-min(training$SalePrice))/min(training$SalePrice)
+training$SalePriceLvl<-cut(training$SalePrice,20, labels=F)
+```
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
